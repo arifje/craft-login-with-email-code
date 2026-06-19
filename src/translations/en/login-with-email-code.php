@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'Code email body' => 'Code email body',
+    'Code email subject' => 'Code email subject',
+    'Code expiry in minutes' => 'Code expiry in minutes',
+    'Code length' => 'Code length',
+    'Email code login is not enabled.' => 'Email code login is not enabled.',
+    'Enable email code login' => 'Enable email code login',
+    'Enable magic link login' => 'Enable magic link login',
+    'Failure redirect' => 'Failure redirect',
+    'If an account exists for that email address, a login email has been sent.' => 'If an account exists for that email address, a login email has been sent.',
+    'Invalidate older tokens' => 'Invalidate older tokens',
+    'Magic link email body' => 'Magic link email body',
+    'Magic link email subject' => 'Magic link email subject',
+    'Magic link expiry in minutes' => 'Magic link expiry in minutes',
+    'Magic link login is not enabled.' => 'Magic link login is not enabled.',
+    'Maximum attempts' => 'Maximum attempts',
+    'Remember-me duration in seconds' => 'Remember-me duration in seconds',
+    'Request cooldown in seconds' => 'Request cooldown in seconds',
+    'Success redirect' => 'Success redirect',
+    'The login code is invalid or has expired.' => 'The login code is invalid or has expired.',
+    'The magic link is invalid or has expired.' => 'The magic link is invalid or has expired.',
+    'The user could not be logged in.' => 'The user could not be logged in.',
+    'You are now logged in.' => 'You are now logged in.',
+];

@@ -1,0 +1,146 @@
+{% import '_includes/forms.twig' as forms %}
+
+{{ forms.lightswitchField({
+    label: 'Enable email code login'|t('login-with-email-code'),
+    instructions: 'Allow existing active users to request a numeric login code by email.'|t('login-with-email-code'),
+    id: 'allowEmailCodes',
+    name: 'allowEmailCodes',
+    on: settings.allowEmailCodes,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Enable magic link login'|t('login-with-email-code'),
+    instructions: 'Allow existing active users to request a one-click login link by email.'|t('login-with-email-code'),
+    id: 'allowMagicLinks',
+    name: 'allowMagicLinks',
+    on: settings.allowMagicLinks,
+}) }}
+
+{{ forms.textField({
+    label: 'Code length'|t('login-with-email-code'),
+    instructions: 'Number of digits in the emailed login code.'|t('login-with-email-code'),
+    id: 'codeLength',
+    name: 'codeLength',
+    type: 'number',
+    min: 4,
+    max: 12,
+    value: settings.codeLength,
+    errors: settings.getErrors('codeLength'),
+}) }}
+
+{{ forms.textField({
+    label: 'Code expiry in minutes'|t('login-with-email-code'),
+    instructions: 'How long a login code remains valid.'|t('login-with-email-code'),
+    id: 'codeExpiryMinutes',
+    name: 'codeExpiryMinutes',
+    type: 'number',
+    min: 1,
+    value: settings.codeExpiryMinutes,
+    errors: settings.getErrors('codeExpiryMinutes'),
+}) }}
+
+{{ forms.textField({
+    label: 'Magic link expiry in minutes'|t('login-with-email-code'),
+    instructions: 'How long a magic link remains valid.'|t('login-with-email-code'),
+    id: 'magicLinkExpiryMinutes',
+    name: 'magicLinkExpiryMinutes',
+    type: 'number',
+    min: 1,
+    value: settings.magicLinkExpiryMinutes,
+    errors: settings.getErrors('magicLinkExpiryMinutes'),
+}) }}
+
+{{ forms.textField({
+    label: 'Maximum attempts'|t('login-with-email-code'),
+    instructions: 'Maximum verification attempts for a code or magic link token.'|t('login-with-email-code'),
+    id: 'maxAttempts',
+    name: 'maxAttempts',
+    type: 'number',
+    min: 1,
+    value: settings.maxAttempts,
+    errors: settings.getErrors('maxAttempts'),
+}) }}
+
+{{ forms.textField({
+    label: 'Request cooldown in seconds'|t('login-with-email-code'),
+    instructions: 'Minimum time before the same user can receive a new token for the same login method.'|t('login-with-email-code'),
+    id: 'requestCooldownSeconds',
+    name: 'requestCooldownSeconds',
+    type: 'number',
+    min: 0,
+    value: settings.requestCooldownSeconds,
+    errors: settings.getErrors('requestCooldownSeconds'),
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Invalidate older tokens'|t('login-with-email-code'),
+    instructions: 'When a new token is created, delete older unused tokens for that user and login method.'|t('login-with-email-code'),
+    id: 'invalidateExistingTokens',
+    name: 'invalidateExistingTokens',
+    on: settings.invalidateExistingTokens,
+}) }}
+
+{{ forms.textField({
+    label: 'Remember-me duration in seconds'|t('login-with-email-code'),
+    instructions: 'Use 0 for a normal session login.'|t('login-with-email-code'),
+    id: 'rememberMeDuration',
+    name: 'rememberMeDuration',
+    type: 'number',
+    min: 0,
+    value: settings.rememberMeDuration,
+    errors: settings.getErrors('rememberMeDuration'),
+}) }}
+
+{{ forms.textField({
+    label: 'Success redirect'|t('login-with-email-code'),
+    instructions: 'Fallback site-relative redirect after login, for example /account. Leave blank for the site homepage.'|t('login-with-email-code'),
+    id: 'successRedirect',
+    name: 'successRedirect',
+    value: settings.successRedirect,
+    errors: settings.getErrors('successRedirect'),
+}) }}
+
+{{ forms.textField({
+    label: 'Failure redirect'|t('login-with-email-code'),
+    instructions: 'Fallback site-relative redirect after an invalid or expired token. Leave blank for the site homepage.'|t('login-with-email-code'),
+    id: 'failureRedirect',
+    name: 'failureRedirect',
+    value: settings.failureRedirect,
+    errors: settings.getErrors('failureRedirect'),
+}) }}
+
+{{ forms.textField({
+    label: 'Code email subject'|t('login-with-email-code'),
+    id: 'codeEmailSubject',
+    name: 'codeEmailSubject',
+    value: settings.codeEmailSubject,
+    errors: settings.getErrors('codeEmailSubject'),
+}) }}
+
+{{ forms.textareaField({
+    label: 'Code email body'|t('login-with-email-code'),
+    instructions: 'Available placeholders: {siteName}, {email}, {code}, {expires}.'|t('login-with-email-code'),
+    id: 'codeEmailBody',
+    name: 'codeEmailBody',
+    rows: 5,
+    value: settings.codeEmailBody,
+    errors: settings.getErrors('codeEmailBody'),
+}) }}
+
+{{ forms.textField({
+    label: 'Magic link email subject'|t('login-with-email-code'),
+    id: 'magicLinkEmailSubject',
+    name: 'magicLinkEmailSubject',
+    value: settings.magicLinkEmailSubject,
+    errors: settings.getErrors('magicLinkEmailSubject'),
+}) }}
+
+{{ forms.textareaField({
+    label: 'Magic link email body'|t('login-with-email-code'),
+    instructions: 'Available placeholders: {siteName}, {email}, {link}, {expires}.'|t('login-with-email-code'),
+    id: 'magicLinkEmailBody',
+    name: 'magicLinkEmailBody',
+    rows: 5,
+    value: settings.magicLinkEmailBody,
+    errors: settings.getErrors('magicLinkEmailBody'),
+}) }}

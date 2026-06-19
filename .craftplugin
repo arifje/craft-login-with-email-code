@@ -1,0 +1,9 @@
+{
+  "id": "login-with-email-code",
+  "name": "Login With Email Code",
+  "description": "Login existing Craft users with an email code or magic link.",
+  "developer": "Arjan Brinkman",
+  "developerUrl": "https://github.com/arifje",
+  "documentationUrl": "https://github.com/arifje/craft-login-with-email-code/blob/main/README.md",
+  "changelogUrl": "https://github.com/arifje/craft-login-with-email-code/blob/main/CHANGELOG.md"
+}

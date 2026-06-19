@@ -1,0 +1,34 @@
+{
+  "name": "arifje/craft-login-with-email-code",
+  "description": "Login existing Craft CMS users with an email code or magic link.",
+  "version": "1.0.0",
+  "type": "craft-plugin",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Arjan Brinkman",
+      "homepage": "https://github.com/arifje"
+    }
+  ],
+  "require": {
+    "php": ">=8.0.2",
+    "craftcms/cms": "^4.0 || ^5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "arifje\\loginwithemailcode\\": "src/"
+    }
+  },
+  "extra": {
+    "craftcms": {
+      "handle": "login-with-email-code",
+      "name": "Login With Email Code",
+      "description": "Login existing Craft users with an email code or magic link.",
+      "developer": "Arjan Brinkman",
+      "developerUrl": "https://github.com/arifje",
+      "documentationUrl": "https://github.com/arifje/craft-login-with-email-code/blob/main/README.md",
+      "changelogUrl": "https://github.com/arifje/craft-login-with-email-code/blob/main/CHANGELOG.md",
+      "class": "arifje\\loginwithemailcode\\LoginWithEmailCode"
+    }
+  }
+}
