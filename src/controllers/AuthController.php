@@ -68,15 +68,15 @@ class AuthController extends Controller
         return $this->requestResponse($message);
     }
 
-    public function actionMagicLink(?string $token = null): Response
+    public function actionMagicLink(?string $loginToken = null): Response
     {
         $settings = LoginWithEmailCode::$plugin->getSettings();
         if (!$settings->allowMagicLinks) {
             return $this->failureResponse(Craft::t('login-with-email-code', 'Magic link login is not enabled.'));
         }
 
-        $token = $token ?: (string)Craft::$app->getRequest()->getQueryParam('token');
-        $result = LoginWithEmailCode::$plugin->getTokens()->consumeMagicLink($token);
+        $loginToken = $loginToken ?: (string)Craft::$app->getRequest()->getQueryParam('loginToken');
+        $result = LoginWithEmailCode::$plugin->getTokens()->consumeMagicLink($loginToken);
 
         if (!$result) {
             return $this->failureResponse(Craft::t('login-with-email-code', 'The magic link is invalid or has expired.'));

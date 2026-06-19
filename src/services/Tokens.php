@@ -63,7 +63,7 @@ class Tokens extends Component
         $this->createToken((int)$user->id, self::TYPE_MAGIC_LINK, $token['verifier'], (int)$settings->magicLinkExpiryMinutes, $redirect, $token['selector']);
 
         $link = UrlHelper::actionUrl('login-with-email-code/auth/magic-link', [
-            'token' => $token['selector'] . ':' . $token['verifier'],
+            'loginToken' => $token['selector'] . ':' . $token['verifier'],
         ]);
 
         return $this->sendEmail(
