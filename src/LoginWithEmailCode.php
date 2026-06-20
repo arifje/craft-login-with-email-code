@@ -9,6 +9,7 @@ use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\helpers\App;
+use craft\helpers\Json;
 use craft\services\SystemMessages;
 use yii\base\Event;
 
@@ -80,12 +81,10 @@ class LoginWithEmailCode extends Plugin
 
     private function systemMessageTemplate(string $template): string
     {
-        return strtr(Craft::t('login-with-email-code', App::parseEnv($template)), [
-            '{siteName}' => '{{ siteName }}',
-            '{email}' => '{{ email }}',
-            '{code}' => '{{ code }}',
-            '{link}' => '{{ link }}',
-            '{expires}' => '{{ expires }}',
-        ]);
+        return sprintf(
+            '{{ %s|t(%s, { siteName: siteName|default(""), email: email|default(""), code: code|default(""), link: link|default(""), expires: expires|default("") }) }}',
+            Json::encode(App::parseEnv($template)),
+            Json::encode('login-with-email-code')
+        );
     }
 }

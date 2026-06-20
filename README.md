@@ -50,7 +50,7 @@ Available settings:
 - `failureRedirect` is the fallback redirect after an invalid code or link.
 - `codeEmailSubject`, `codeEmailBody`, `magicLinkEmailSubject`, and `magicLinkEmailBody` define the default Craft system-message content for outgoing emails.
 
-Emails are sent through Craft system messages, so Craft's default/custom email template is used. The default subject/body text is translated for English and Dutch, based on Craft's active mail language. After installation, the generated messages can also be customized from Craft's System Messages utility.
+Emails are sent through Craft system messages, so Craft's default/custom email template is used. The default subject/body text is translated for English and Dutch when the email is rendered, based on the recipient's preferred language or the current site mail language. After installation, the generated messages can also be customized from Craft's System Messages utility.
 
 Default email content supports these placeholders:
 

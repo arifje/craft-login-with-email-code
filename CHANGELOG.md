@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4 - 2026-06-20
+
+- Render translated default email subjects and bodies in the recipient/site mail language.
+
 ## 1.0.3 - 2026-06-20
 
 - Added translated default email subjects and bodies for English and Dutch system-message emails.

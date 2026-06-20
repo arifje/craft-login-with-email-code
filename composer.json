@@ -1,7 +1,7 @@
 {
   "name": "arifje/craft-login-with-email-code",
   "description": "Login existing Craft CMS users with an email code or magic link.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "craft-plugin",
   "license": "MIT",
   "keywords": [
