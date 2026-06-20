@@ -23,6 +23,7 @@ return [
     'Magic link email subject' => 'E-mailonderwerp voor magic link',
     'Magic link expiry in minutes' => 'Geldigheid magic link in minuten',
     'Magic link login is not enabled.' => 'Inloggen met magic link is niet ingeschakeld.',
+    "Log in with this secure link:\n\n{link}\n\nThis link expires in {expires} minutes." => "Log in met deze beveiligde link:\n\n{link}\n\nDeze link verloopt over {expires} minuten.",
     'Maximum attempts' => 'Maximaal aantal pogingen',
     'Maximum verification attempts for a code or magic link token.' => 'Maximaal aantal verificatiepogingen voor een code of magic-link-token.',
     'Minimum time before the same user can receive a new token for the same login method.' => 'Minimale tijd voordat dezelfde gebruiker een nieuwe token voor dezelfde inlogmethode kan ontvangen.',
@@ -39,5 +40,8 @@ return [
     'When a new token is created, delete older unused tokens for that user and login method.' => 'Verwijder oudere ongebruikte tokens voor die gebruiker en inlogmethode zodra er een nieuwe token wordt aangemaakt.',
     'When someone requests a login code' => 'Wanneer iemand een inlogcode aanvraagt',
     'When someone requests a magic login link' => 'Wanneer iemand een magic-login-link aanvraagt',
+    'Your login code' => 'Je inlogcode',
+    "Your login code is {code}.\n\nThis code expires in {expires} minutes." => "Je inlogcode is {code}.\n\nDeze code verloopt over {expires} minuten.",
+    'Your login link' => 'Je login-link',
     'You are now logged in.' => 'Je bent nu ingelogd.',
 ];

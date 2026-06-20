@@ -80,7 +80,7 @@ class LoginWithEmailCode extends Plugin
 
     private function systemMessageTemplate(string $template): string
     {
-        return strtr(App::parseEnv($template), [
+        return strtr(Craft::t('login-with-email-code', App::parseEnv($template)), [
             '{siteName}' => '{{ siteName }}',
             '{email}' => '{{ email }}',
             '{code}' => '{{ code }}',
