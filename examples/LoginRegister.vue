@@ -19,7 +19,7 @@
 			</span>
 		</div>
 
-		<ul class="uk-switcher uk-margin">
+		<ul class="uk-switcher">
 			<li>
 				<h3 v-show="welcomeBackTitle" class="uk-card-title uk-text-center">{{ welcomeBackTitle }}</h3>
 				<form method="post" accept-charset="UTF-8" v-on:submit="login" :id="'login-form-' + id">
@@ -67,13 +67,13 @@
 						<button class="uk-button uk-button-primary uk-button-medium uk-width-1-1">{{ loginButton }}</button>
 					</div>
 					<div class="uk-text-small uk-text-center">
-						{{ notRegisteredText }}<br /><a href="#" uk-switcher-item="1">{{ createAccountText }}</a>
+						<a href="#" uk-switcher-item="1">{{ createAccountText }}</a>
 					</div>
 				</form>
 
 				<div v-if="passwordlessLogin && (emailCodeLogin || magicLinkLogin)" class="passwordless-login uk-margin-large-top uk-text-center">
 					<hr class="uk-divider-small">
-					<h4 class="uk-margin-small-bottom">{{ passwordlessTitle }}</h4>
+					<h4 class="uk-margin-remove">{{ passwordlessTitle }}</h4>
 					<p class="uk-text-small uk-margin-small-top">{{ passwordlessDescription }}</p>
 
 					<form method="post" accept-charset="UTF-8" @submit.prevent="requestLoginCode">
@@ -85,7 +85,7 @@
 								<input
 									class="uk-input uk-form-large"
 									type="email"
-									name="email"
+									name="passwordlessEmail"
 									autocomplete="email"
 									:placeholder="emailPlaceholder"
 									v-model="passwordlessEmail"
@@ -415,14 +415,14 @@ export default {
 			sendEmailButton: 'E-mail verzenden',
 			backToLoginText: 'Terug naar inloggen',
 			passwordlessTitle: 'Inloggen zonder wachtwoord',
-			passwordlessDescription: 'Ontvang een inlogcode of magic link per e-mail.',
-			loginCodeButton: 'Stuur inlogcode',
-			magicLinkButton: 'Stuur magic link',
+			passwordlessDescription: 'Ontvang een code of login-link per e-mail.',
+			loginCodeButton: 'Stuur code',
+			magicLinkButton: 'Stuur link',
 			verifyCodeButton: 'Code controleren',
 			loginCodeSentMessage: 'We hebben je een inlogcode gestuurd. Vul de code hieronder in om in te loggen.',
 			magicLinkSentMessage: 'We hebben je een magic link gestuurd. Controleer je inbox en spamfolder.',
 			emailRequiredMessage: 'Vul je e-mailadres in.',
-			codeRequiredMessage: 'Vul je inlogcode in.',
+			codeRequiredMessage: 'Vul je code in.',
 
 		};
 	},
@@ -455,7 +455,7 @@ export default {
 			return this.returnUrlWeb || '/';
 		},
 		getPasswordlessEmail() {
-			return (this.passwordlessEmail || this.loginLoginName || '').trim();
+			return (this.passwordlessEmail || '').trim();
 		},
 		createPasswordlessFormData(extraData) {
 			var formData = new FormData();
