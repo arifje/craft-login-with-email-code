@@ -114,6 +114,16 @@ Create a form that requests a magic link:
 
 The emailed magic link points at the plugin action and logs the user in when the token is valid.
 
+## Vue Example
+
+An adapted UIkit/Vue login component is included at `examples/LoginRegister.vue`. It keeps the existing password login, registration, and password-reset flows, and adds:
+
+- email-code request and verification via `/actions/login-with-email-code/auth/request-code` and `/actions/login-with-email-code/auth/verify-code`
+- magic-link requests via `/actions/login-with-email-code/auth/request-magic-link`
+- JSON response handling and redirect support for web/app contexts
+
+The example assumes `axios`, UIkit, the local `LoadingIndicator.vue` component, and Craft CSRF globals named `window.csrfTokenName` and `window.csrfTokenValue`.
+
 ## Notes
 
 - Only existing active users can log in.
