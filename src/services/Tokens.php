@@ -7,9 +7,9 @@ use arifje\loginwithemailcode\models\LoginResult;
 use Craft;
 use craft\base\Component;
 use craft\elements\User;
-use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\StringHelper;
+use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use DateTime;
 use DateTimeZone;
@@ -35,19 +35,12 @@ class Tokens extends Component
         $code = $this->generateNumericCode((int)$settings->codeLength);
         $this->createToken((int)$user->id, self::TYPE_CODE, $code, (int)$settings->codeExpiryMinutes, $redirect);
 
-        return $this->sendEmail(
-            $user,
-            $this->renderTemplate((string)$settings->codeEmailSubject, [
-                'code' => $code,
-                'expires' => (string)$settings->codeExpiryMinutes,
-                'email' => (string)$user->email,
-            ]),
-            $this->renderTemplate((string)$settings->codeEmailBody, [
-                'code' => $code,
-                'expires' => (string)$settings->codeExpiryMinutes,
-                'email' => (string)$user->email,
-            ])
-        );
+        return $this->sendEmail($user, LoginWithEmailCode::CODE_EMAIL_KEY, [
+            'code' => $code,
+            'expires' => (string)$settings->codeExpiryMinutes,
+            'email' => (string)$user->email,
+            'siteName' => Craft::$app->getSystemName(),
+        ]);
     }
 
     public function sendMagicLink(string $email, ?string $redirect = null): bool
@@ -66,19 +59,12 @@ class Tokens extends Component
             'loginToken' => $token['selector'] . ':' . $token['verifier'],
         ]);
 
-        return $this->sendEmail(
-            $user,
-            $this->renderTemplate((string)$settings->magicLinkEmailSubject, [
-                'link' => $link,
-                'expires' => (string)$settings->magicLinkExpiryMinutes,
-                'email' => (string)$user->email,
-            ]),
-            $this->renderTemplate((string)$settings->magicLinkEmailBody, [
-                'link' => $link,
-                'expires' => (string)$settings->magicLinkExpiryMinutes,
-                'email' => (string)$user->email,
-            ])
-        );
+        return $this->sendEmail($user, LoginWithEmailCode::MAGIC_LINK_EMAIL_KEY, [
+            'link' => Template::raw($link),
+            'expires' => (string)$settings->magicLinkExpiryMinutes,
+            'email' => (string)$user->email,
+            'siteName' => Craft::$app->getSystemName(),
+        ]);
     }
 
     public function consumeCode(string $email, string $code): ?LoginResult
@@ -301,48 +287,19 @@ class Tokens extends Component
     }
 
     /**
-     * @param array<string, string> $variables
+     * @param array<string, mixed> $variables
      */
-    private function renderTemplate(string $template, array $variables): string
-    {
-        $variables = array_merge([
-            'siteName' => Craft::$app->getSystemName(),
-        ], $variables);
-
-        $replace = [];
-        foreach ($variables as $key => $value) {
-            $replace['{' . $key . '}'] = $value;
-        }
-
-        return strtr(App::parseEnv($template), $replace);
-    }
-
-    private function sendEmail(User $user, string $subject, string $body): bool
+    private function sendEmail(User $user, string $messageKey, array $variables): bool
     {
         try {
             return Craft::$app->getMailer()
-                ->compose()
-                ->setTo([(string)$user->email => $this->friendlyName($user)])
-                ->setSubject($subject)
-                ->setTextBody($body)
+                ->composeFromKey($messageKey, $variables)
+                ->setTo($user)
                 ->send();
         } catch (Throwable $exception) {
             Craft::error('Could not send passwordless login email: ' . $exception->getMessage(), __METHOD__);
 
             return false;
         }
-    }
-
-    private function friendlyName(User $user): string
-    {
-        if (method_exists($user, 'getFriendlyName')) {
-            $name = trim((string)$user->getFriendlyName());
-
-            if ($name !== '') {
-                return $name;
-            }
-        }
-
-        return (string)$user->email;
     }
 }

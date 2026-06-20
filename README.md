@@ -48,9 +48,11 @@ Available settings:
 - `rememberMeDuration` sets the login duration in seconds. Default: `0` for a normal session login.
 - `successRedirect` is the fallback redirect after a successful login.
 - `failureRedirect` is the fallback redirect after an invalid code or link.
-- `codeEmailSubject`, `codeEmailBody`, `magicLinkEmailSubject`, and `magicLinkEmailBody` customize outgoing emails.
+- `codeEmailSubject`, `codeEmailBody`, `magicLinkEmailSubject`, and `magicLinkEmailBody` define the default Craft system-message content for outgoing emails.
 
-Email templates support these placeholders:
+Emails are sent through Craft system messages, so Craft's default/custom email template is used. After installation, the generated messages can also be customized from Craft's System Messages utility.
+
+Default email content supports these placeholders:
 
 - `{siteName}`
 - `{email}`

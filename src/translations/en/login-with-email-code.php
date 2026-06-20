@@ -22,5 +22,9 @@ return [
     'The login code is invalid or has expired.' => 'The login code is invalid or has expired.',
     'The magic link is invalid or has expired.' => 'The magic link is invalid or has expired.',
     'The user could not be logged in.' => 'The user could not be logged in.',
+    'Used as the default Craft system message content. Available placeholders: {siteName}, {email}, {code}, {expires}.' => 'Used as the default Craft system message content. Available placeholders: {siteName}, {email}, {code}, {expires}.',
+    'Used as the default Craft system message content. Available placeholders: {siteName}, {email}, {link}, {expires}.' => 'Used as the default Craft system message content. Available placeholders: {siteName}, {email}, {link}, {expires}.',
+    'When someone requests a login code' => 'When someone requests a login code',
+    'When someone requests a magic login link' => 'When someone requests a magic login link',
     'You are now logged in.' => 'You are now logged in.',
 ];

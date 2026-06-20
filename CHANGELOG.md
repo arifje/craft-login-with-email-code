@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 - 2026-06-20
+
+- Send login code and magic link emails through Craft system messages so Craft's default/custom email template is used.
+
 ## 1.0.1 - 2026-06-19
 
 - Fixed Craft 4 Composer plugin metadata so the Craft plugin installer can determine the plugin class.

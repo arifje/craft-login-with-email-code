@@ -34,6 +34,10 @@ return [
     'The magic link is invalid or has expired.' => 'De magic link is ongeldig of verlopen.',
     'The user could not be logged in.' => 'De gebruiker kon niet worden ingelogd.',
     'Use 0 for a normal session login.' => 'Gebruik 0 voor een normale sessie-login.',
+    'Used as the default Craft system message content. Available placeholders: {siteName}, {email}, {code}, {expires}.' => 'Wordt gebruikt als standaardinhoud voor het Craft-systeembericht. Beschikbare placeholders: {siteName}, {email}, {code}, {expires}.',
+    'Used as the default Craft system message content. Available placeholders: {siteName}, {email}, {link}, {expires}.' => 'Wordt gebruikt als standaardinhoud voor het Craft-systeembericht. Beschikbare placeholders: {siteName}, {email}, {link}, {expires}.',
     'When a new token is created, delete older unused tokens for that user and login method.' => 'Verwijder oudere ongebruikte tokens voor die gebruiker en inlogmethode zodra er een nieuwe token wordt aangemaakt.',
+    'When someone requests a login code' => 'Wanneer iemand een inlogcode aanvraagt',
+    'When someone requests a magic login link' => 'Wanneer iemand een magic-login-link aanvraagt',
     'You are now logged in.' => 'Je bent nu ingelogd.',
 ];
