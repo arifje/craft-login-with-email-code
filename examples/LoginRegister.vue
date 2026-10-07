@@ -520,6 +520,11 @@ export default {
 		redirectAfterLoginResponse(response) {
 			var redirect = response.data && response.data.redirect ? response.data.redirect : this.getReturnUrl();
 
+			if (response.data && response.data.requiresTwoFactor) {
+				window.location = redirect;
+				return;
+			}
+
 			if (this.isApp) {
 				window.location = this.returnUrlApp;
 				return;

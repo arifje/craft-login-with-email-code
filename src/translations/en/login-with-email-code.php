@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'Confirm sign-in' => 'Confirm sign-in',
+    'Continue only if you want to sign in as {email}.' => 'Continue only if you want to sign in as {email}.',
+    'Sign in as {email}' => 'Sign in as {email}',
+
     'Code email body' => 'Code email body',
     'Code email subject' => 'Code email subject',
     'Code expiry in minutes' => 'Code expiry in minutes',

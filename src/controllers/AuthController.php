@@ -7,6 +7,8 @@ use arifje\loginwithemailcode\models\LoginResult;
 use Craft;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
+use craft\web\View;
+use yii\web\MethodNotAllowedHttpException;
 use yii\web\Response;
 
 class AuthController extends Controller
@@ -70,19 +72,53 @@ class AuthController extends Controller
 
     public function actionMagicLink(?string $loginToken = null): Response
     {
-        $settings = LoginWithEmailCode::$plugin->getSettings();
-        if (!$settings->allowMagicLinks) {
+        if (!Craft::$app->getRequest()->getIsGet()) {
+            throw new MethodNotAllowedHttpException();
+        }
+        $this->protectConfirmationResponse();
+
+        if (!LoginWithEmailCode::$plugin->getSettings()->allowMagicLinks) {
             return $this->failureResponse(Craft::t('login-with-email-code', 'Magic link login is not enabled.'));
         }
 
         $loginToken = $loginToken ?: (string)Craft::$app->getRequest()->getQueryParam('loginToken');
-        $result = LoginWithEmailCode::$plugin->getTokens()->consumeMagicLink($loginToken);
+        $result = LoginWithEmailCode::$plugin->getTokens()->previewMagicLink($loginToken);
+        if (!$result) {
+            return $this->failureResponse(Craft::t('login-with-email-code', 'The magic link is invalid or has expired.'));
+        }
 
+        return $this->renderTemplate('login-with-email-code/_confirm', [
+            'loginToken' => $loginToken,
+            'email' => $result->user->email,
+        ], View::TEMPLATE_MODE_CP);
+    }
+
+    public function actionConfirmMagicLink(): Response
+    {
+        $this->requirePostRequest();
+        $this->protectConfirmationResponse();
+
+        if (!LoginWithEmailCode::$plugin->getSettings()->allowMagicLinks) {
+            return $this->failureResponse(Craft::t('login-with-email-code', 'Magic link login is not enabled.'));
+        }
+
+        $result = LoginWithEmailCode::$plugin->getTokens()->consumeMagicLink(
+            (string)Craft::$app->getRequest()->getBodyParam('loginToken')
+        );
         if (!$result) {
             return $this->failureResponse(Craft::t('login-with-email-code', 'The magic link is invalid or has expired.'));
         }
 
         return $this->loginAndRedirect($result);
+    }
+
+    private function protectConfirmationResponse(): void
+    {
+        $headers = Craft::$app->getResponse()->getHeaders();
+        $headers->set('Cache-Control', 'no-store');
+        $headers->set('Referrer-Policy', 'no-referrer');
+        $headers->set('X-Frame-Options', 'DENY');
+        $headers->set('Content-Security-Policy', "frame-ancestors 'none'; form-action 'self'; base-uri 'none'");
     }
 
     private function requestResponse(string $message): Response
@@ -120,20 +156,49 @@ class AuthController extends Controller
     {
         $settings = LoginWithEmailCode::$plugin->getSettings();
 
-        if (!Craft::$app->getUser()->login($result->user, max(0, (int)$settings->rememberMeDuration))) {
+        $tokens = LoginWithEmailCode::$plugin->getTokens();
+        // Recheck account restrictions at the session boundary.
+        $user = Craft::$app->getUsers()->getUserById((int)$result->user->id);
+        if (!$user || !$tokens->isLoginableUser($user)) {
+            return $this->failureResponse(Craft::t('login-with-email-code', 'The user could not be logged in.'));
+        }
+
+        $redirect = $this->siteUrl($this->postedRedirect() ?: $result->redirect ?: $settings->successRedirect);
+        $duration = max(0, (int)$settings->rememberMeDuration);
+
+        // Craft 4 has no native Auth service. Keep the compatibility boundary here.
+        if (method_exists(Craft::$app, 'getAuth') && !Craft::$app->getConfig()->getGeneral()->disable2fa) {
+            $auth = Craft::$app->getAuth();
+            if ($auth->hasActiveMethod($user)) {
+                $auth->setUser($user, $duration);
+                Craft::$app->getUser()->setReturnUrl($redirect);
+                $verificationUrl = UrlHelper::actionUrl('users/auth-form');
+                if (Craft::$app->getRequest()->getAcceptsJson()) {
+                    return $this->asJson([
+                        'success' => false,
+                        'requiresTwoFactor' => true,
+                        'redirect' => $verificationUrl,
+                    ]);
+                }
+
+                return $this->redirect($verificationUrl);
+            }
+        }
+
+        if (!Craft::$app->getUser()->login($user, $duration)) {
             return $this->failureResponse(Craft::t('login-with-email-code', 'The user could not be logged in.'));
         }
 
         if (Craft::$app->getRequest()->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
-                'redirect' => $this->siteUrl($this->postedRedirect() ?: $result->redirect ?: $settings->successRedirect),
+                'redirect' => $redirect,
             ]);
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('login-with-email-code', 'You are now logged in.'));
 
-        return $this->redirectToSite($this->postedRedirect() ?: $result->redirect ?: $settings->successRedirect);
+        return $this->redirect($redirect);
     }
 
     private function postedRedirect(): ?string

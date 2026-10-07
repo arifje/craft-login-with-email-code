@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="{{ craft.app.language }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>{{ 'Confirm sign-in'|t('login-with-email-code') }}</title>
+</head>
+<body>
+    <main>
+        <h1>{{ 'Confirm sign-in'|t('login-with-email-code') }}</h1>
+        <p>{{ 'Continue only if you want to sign in as {email}.'|t('login-with-email-code', {email: email}) }}</p>
+        <form method="post" action="{{ actionUrl('login-with-email-code/auth/confirm-magic-link') }}">
+            {{ csrfInput() }}
+            {{ hiddenInput('loginToken', loginToken) }}
+            <button type="submit">{{ 'Sign in as {email}'|t('login-with-email-code', {email: email}) }}</button>
+        </form>
+    </main>
+</body>
+</html>

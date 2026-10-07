@@ -1,8 +1,12 @@
 <?php
 
 return [
+    'Confirm sign-in' => 'Inloggen bevestigen',
+    'Continue only if you want to sign in as {email}.' => 'Ga alleen verder als je wilt inloggen als {email}.',
+    'Sign in as {email}' => 'Inloggen als {email}',
+
     'Allow existing active users to request a numeric login code by email.' => 'Laat bestaande actieve gebruikers een numerieke inlogcode per e-mail aanvragen.',
-    'Allow existing active users to request a one-click login link by email.' => 'Laat bestaande actieve gebruikers een inloglink per e-mail aanvragen.',
+    'Allow existing active users to request a login link by email.' => 'Laat bestaande actieve gebruikers een inloglink per e-mail aanvragen.',
     'Available placeholders: {siteName}, {email}, {code}, {expires}.' => 'Beschikbare placeholders: {siteName}, {email}, {code}, {expires}.',
     'Available placeholders: {siteName}, {email}, {link}, {expires}.' => 'Beschikbare placeholders: {siteName}, {email}, {link}, {expires}.',
     'Code email body' => 'E-mailtekst voor code',

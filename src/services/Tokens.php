@@ -28,12 +28,14 @@ class Tokens extends Component
         $settings = LoginWithEmailCode::$plugin->getSettings();
         $user = $this->findLoginableUser($email);
 
-        if (!$user || $this->isRequestThrottled((int)$user->id, self::TYPE_CODE)) {
+        if (!$user) {
             return false;
         }
 
         $code = $this->generateNumericCode((int)$settings->codeLength);
-        $this->createToken((int)$user->id, self::TYPE_CODE, $code, (int)$settings->codeExpiryMinutes, $redirect);
+        if (!$this->issueToken((int)$user->id, self::TYPE_CODE, $code, (int)$settings->codeExpiryMinutes, $redirect)) {
+            return false;
+        }
 
         return $this->sendEmail($user, LoginWithEmailCode::CODE_EMAIL_KEY, [
             'code' => $code,
@@ -48,12 +50,14 @@ class Tokens extends Component
         $settings = LoginWithEmailCode::$plugin->getSettings();
         $user = $this->findLoginableUser($email);
 
-        if (!$user || $this->isRequestThrottled((int)$user->id, self::TYPE_MAGIC_LINK)) {
+        if (!$user) {
             return false;
         }
 
         $token = $this->generateMagicToken();
-        $this->createToken((int)$user->id, self::TYPE_MAGIC_LINK, $token['verifier'], (int)$settings->magicLinkExpiryMinutes, $redirect, $token['selector']);
+        if (!$this->issueToken((int)$user->id, self::TYPE_MAGIC_LINK, $token['verifier'], (int)$settings->magicLinkExpiryMinutes, $redirect, $token['selector'])) {
+            return false;
+        }
 
         $link = UrlHelper::actionUrl('login-with-email-code/auth/magic-link', [
             'loginToken' => $token['selector'] . ':' . $token['verifier'],
@@ -69,11 +73,21 @@ class Tokens extends Component
 
     public function consumeCode(string $email, string $code): ?LoginResult
     {
-        $settings = LoginWithEmailCode::$plugin->getSettings();
         $user = $this->findLoginableUser($email);
         $code = trim($code);
 
         if (!$user || $code === '') {
+            return null;
+        }
+
+        return $this->withTokenLock((int)$user->id, self::TYPE_CODE, fn() => $this->consumeCodeForUser((int)$user->id, $code));
+    }
+
+    private function consumeCodeForUser(int $userId, string $code): ?LoginResult
+    {
+        $settings = LoginWithEmailCode::$plugin->getSettings();
+        $user = Craft::$app->getUsers()->getUserById($userId);
+        if (!$user || !$this->isLoginableUser($user)) {
             return null;
         }
 
@@ -94,9 +108,9 @@ class Tokens extends Component
             }
 
             if (Craft::$app->getSecurity()->validatePassword($code, (string)$row['verifierHash'])) {
-                $this->markUsed((int)$row['id']);
-
-                return new LoginResult($user, $this->normalizeSiteRedirect($row['redirect'] ?? null));
+                return $this->markUsed((int)$row['id'])
+                    ? new LoginResult($user, $this->normalizeSiteRedirect($row['redirect'] ?? null))
+                    : null;
             }
 
             $this->incrementAttempts((int)$row['id']);
@@ -107,41 +121,76 @@ class Tokens extends Component
 
     public function consumeMagicLink(string $token): ?LoginResult
     {
-        $settings = LoginWithEmailCode::$plugin->getSettings();
-        $parts = explode(':', trim($token), 2);
-
-        if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '') {
+        $parts = $this->magicLinkParts($token);
+        if ($parts === null) {
             return null;
         }
 
-        $row = (new Query())
-            ->from(self::TABLE)
-            ->where([
-                'selector' => $parts[0],
-                'type' => self::TYPE_MAGIC_LINK,
-                'usedAt' => null,
-            ])
-            ->andWhere(['>', 'expiresAt', $this->nowForDb()])
-            ->one();
-
-        if (!$row || (int)$row['attempts'] >= (int)$settings->maxAttempts) {
+        // Only discover the lock key here. Re-read and verify under the same lock as issuance.
+        $row = $this->findMagicLink($parts[0]);
+        if (!$row) {
             return null;
         }
 
-        if (!Craft::$app->getSecurity()->validatePassword($parts[1], (string)$row['verifierHash'])) {
-            $this->incrementAttempts((int)$row['id']);
+        return $this->withTokenLock((int)$row['userId'], self::TYPE_MAGIC_LINK, function () use ($parts): ?LoginResult {
+            $row = $this->findMagicLink($parts[0]);
+            if (!$row) {
+                return null;
+            }
 
+            if (!Craft::$app->getSecurity()->validatePassword($parts[1], (string)$row['verifierHash'])) {
+                $this->incrementAttempts((int)$row['id']);
+                return null;
+            }
+
+            $user = Craft::$app->getUsers()->getUserById((int)$row['userId']);
+            if (!$user || !$this->isLoginableUser($user)) {
+                return null;
+            }
+
+            return $this->markUsed((int)$row['id'])
+                ? new LoginResult($user, $this->normalizeSiteRedirect($row['redirect'] ?? null))
+                : null;
+        });
+    }
+
+    /**
+     * Preview a valid link without consuming it or creating a session.
+     * The POST confirmation must independently verify the token again.
+     */
+    public function previewMagicLink(string $token): ?LoginResult
+    {
+        $parts = $this->magicLinkParts($token);
+        if ($parts === null) {
+            return null;
+        }
+
+        $row = $this->findMagicLink($parts[0]);
+        if (!$row || !Craft::$app->getSecurity()->validatePassword($parts[1], (string)$row['verifierHash'])) {
             return null;
         }
 
         $user = Craft::$app->getUsers()->getUserById((int)$row['userId']);
-        if (!$user || !$this->isLoginableUser($user)) {
+        return $user && $this->isLoginableUser($user) ? new LoginResult($user) : null;
+    }
+
+    private function magicLinkParts(string $token): ?array
+    {
+        if (!preg_match('/\A([a-f0-9]{18}):([A-Za-z0-9_-]{43})\z/', trim($token), $matches)) {
             return null;
         }
 
-        $this->markUsed((int)$row['id']);
+        return [$matches[1], $matches[2]];
+    }
 
-        return new LoginResult($user, $this->normalizeSiteRedirect($row['redirect'] ?? null));
+    private function findMagicLink(string $selector): array|false
+    {
+        return (new Query())
+            ->from(self::TABLE)
+            ->where(['selector' => $selector, 'type' => self::TYPE_MAGIC_LINK, 'usedAt' => null])
+            ->andWhere(['>', 'expiresAt', $this->nowForDb()])
+            ->andWhere(['<', 'attempts', LoginWithEmailCode::$plugin->getSettings()->maxAttempts])
+            ->one();
     }
 
     public function normalizeSiteRedirect(?string $url): ?string
@@ -168,9 +217,40 @@ class Tokens extends Component
         return $user && $this->isLoginableUser($user) ? $user : null;
     }
 
-    private function isLoginableUser(User $user): bool
+    public function isLoginableUser(User $user): bool
     {
-        return $user->email && $user->getStatus() === User::STATUS_ACTIVE;
+        return $user->email && $user->getStatus() === User::STATUS_ACTIVE
+            && !$user->locked && !$user->passwordResetRequired;
+    }
+
+    private function withTokenLock(int $userId, string $type, callable $callback): mixed
+    {
+        $mutex = Craft::$app->getMutex();
+        $name = "login-with-email-code:$userId:$type";
+        if (!$mutex->acquire($name, 5)) {
+            return null;
+        }
+
+        try {
+            return $callback();
+        } finally {
+            $mutex->release($name);
+        }
+    }
+
+    private function issueToken(int $userId, string $type, string $verifier, int $expiryMinutes, ?string $redirect, ?string $selector = null): bool
+    {
+        return (bool)$this->withTokenLock($userId, $type, function () use ($userId, $type, $verifier, $expiryMinutes, $redirect, $selector): bool {
+            $user = Craft::$app->getUsers()->getUserById($userId);
+            if (!$user || !$this->isLoginableUser($user) || $this->isRequestThrottled($userId, $type)) {
+                return false;
+            }
+
+            Craft::$app->getDb()->transaction(function () use ($userId, $type, $verifier, $expiryMinutes, $redirect, $selector): void {
+                $this->createToken($userId, $type, $verifier, $expiryMinutes, $redirect, $selector);
+            });
+            return true;
+        });
     }
 
     private function createToken(int $userId, string $type, string $verifier, int $expiryMinutes, ?string $redirect = null, ?string $selector = null): void
@@ -246,7 +326,6 @@ class Tokens extends Component
             ->where([
                 'userId' => $userId,
                 'type' => $type,
-                'usedAt' => null,
             ])
             ->andWhere(['>', 'dateCreated', Db::prepareDateForDb($threshold)])
             ->exists();
@@ -254,21 +333,31 @@ class Tokens extends Component
 
     private function purgeExpiredTokens(): void
     {
+        $seconds = max(0, LoginWithEmailCode::$plugin->getSettings()->requestCooldownSeconds);
+        $threshold = (new DateTime('now', new DateTimeZone('UTC')))->modify('-' . $seconds . ' seconds');
+
         Craft::$app->getDb()->createCommand()
-            ->delete(self::TABLE, ['<', 'expiresAt', $this->nowForDb()])
+            ->delete(self::TABLE, ['and',
+                ['<', 'expiresAt', $this->nowForDb()],
+                ['<=', 'dateCreated', Db::prepareDateForDb($threshold)],
+            ])
             ->execute();
     }
 
-    private function markUsed(int $id): void
+    private function markUsed(int $id): bool
     {
         $now = $this->nowForDb();
 
-        Craft::$app->getDb()->createCommand()
+        return Craft::$app->getDb()->createCommand()
             ->update(self::TABLE, [
                 'usedAt' => $now,
                 'dateUpdated' => $now,
-            ], ['id' => $id])
-            ->execute();
+            ], ['and',
+                ['id' => $id, 'usedAt' => null],
+                ['>', 'expiresAt', $now],
+                ['<', 'attempts', LoginWithEmailCode::$plugin->getSettings()->maxAttempts],
+            ])
+            ->execute() === 1;
     }
 
     private function incrementAttempts(int $id): void
